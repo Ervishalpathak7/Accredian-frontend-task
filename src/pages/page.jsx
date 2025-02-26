@@ -1,5 +1,5 @@
-import Referral from "../components/referral";
+import ReferralPage from "../components/referral-page";
 
 export default function Page() {
-  return <Referral/>;
+  return <ReferralPage/>;
 }

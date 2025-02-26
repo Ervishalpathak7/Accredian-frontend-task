@@ -1,7 +1,7 @@
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import {
   Dialog,
   DialogContent,
@@ -9,15 +9,29 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Gift, Link2, Users } from "lucide-react"
-import { toast } from "sonner"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Gift, Link2, Users } from "lucide-react";
+import { toast } from "sonner";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 
 const formSchema = z.object({
   // Referrer details
@@ -25,19 +39,19 @@ const formSchema = z.object({
   referrerEmail: z.string().email("Invalid email address"),
   referrerPhone: z.string().min(10, "Phone number must be at least 10 digits"),
 
-  // Referee details
-  refereeName: z.string().min(2, "Name must be at least 2 characters"),
-  refereeEmail: z.string().email("Invalid email address"),
-  refereePhone: z.string().min(10, "Phone number must be at least 10 digits"),
+  // Referred details (fix names to match backend)
+  referredName: z.string().min(2, "Name must be at least 2 characters"),
+  referredEmail: z.string().email("Invalid email address"),
+  referredPhone: z.string().min(10, "Phone number must be at least 10 digits"),
 
   // Course details
   course: z.string().min(1, "Please select a course"),
   message: z.string().optional(),
-})
+});
 
 function Referral() {
-  const [isOpen, setIsOpen] = useState(false)
-  const referralProgress = 60
+  const [isOpen, setIsOpen] = useState(false);
+  const referralProgress = 60;
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -45,25 +59,37 @@ function Referral() {
       referrerName: "",
       referrerEmail: "",
       referrerPhone: "",
-      refereeName: "",
-      refereeEmail: "",
-      refereePhone: "",
+      referredName: "",
+      referredEmail: "",
+      referredPhone: "",
       course: "",
       message: "",
     },
-  })
+  });
 
   const onSubmit = async (values) => {
     try {
-      // Here you would typically send the data to your API
-      console.log(values)
-      toast.success("Referral submitted successfully!")
-      setIsOpen(false)
-      form.reset()
+      const response = await fetch("http://localhost:3000/referral", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(values), // No need to remap if names match
+      });
+      if (response.ok) {
+        const result = await response.json();
+        toast.success(result.message || "Referral submitted successfully!");
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.error || "Failed to submit referral");
+      }
+      setIsOpen(false);
+      form.reset();
     } catch (error) {
-      toast.error("Failed to submit referral")
+      console.error("Error submitting referral:", error);
+      toast.error("Failed to submit referral");
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary-muted to-white">
@@ -73,7 +99,9 @@ function Referral() {
           <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
             Refer Friends & Earn Rewards
           </h1>
-          <p className="text-lg text-muted-foreground">Share the love and get rewarded for every friend who joins</p>
+          <p className="text-lg text-muted-foreground">
+            Share the love and get rewarded for every friend who joins
+          </p>
         </div>
 
         {/* Main Card */}
@@ -115,32 +143,46 @@ function Referral() {
                 </CardContent>
               </Card>
             </div>
-
             {/* Progress Section */}
             <div className="space-y-3 bg-secondary-muted rounded-lg p-6">
               <div className="flex justify-between text-sm">
-                <span className="font-medium text-secondary">Progress to next reward</span>
-                <span className="font-bold text-secondary">{referralProgress}%</span>
+                <span className="font-medium text-secondary">
+                  Progress to next reward
+                </span>
+                <span className="font-bold text-secondary">
+                  {referralProgress}%
+                </span>
               </div>
               <Progress value={referralProgress} className="h-2" />
-              <p className="text-sm text-secondary/80">3 more referrals until your next reward!</p>
+              <p className="text-sm text-secondary/80">
+                3 more referrals until your next reward!
+              </p>
             </div>
 
             {/* Refer Now Button and Modal */}
-             <div className="flex justify-center">
+            <div className="flex justify-center">
               <Dialog open={isOpen} onOpenChange={setIsOpen}>
                 <DialogTrigger asChild>
-                  <Button size="lg" className="bg-primary hover:bg-primary/90 text-lg px-8">
+                  <Button
+                    size="lg"
+                    className="bg-primary hover:bg-primary/90 text-lg px-8"
+                  >
                     Refer Now
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="fixed z-50 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white rounded-lg shadow-lg">
                   <DialogHeader>
                     <DialogTitle>Refer a Friend</DialogTitle>
-                    <DialogDescription>Fill in the details below to refer your friend to a course.</DialogDescription>
+                    <DialogDescription>
+                      Fill in the details below to refer your friend to a
+                      course.
+                    </DialogDescription>
                   </DialogHeader>
                   <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                    <form
+                      onSubmit={form.handleSubmit(onSubmit)}
+                      className="space-y-6"
+                    >
                       {/* Referrer Details Section */}
                       <div className="space-y-4">
                         <h3 className="text-lg font-semibold">Your Details</h3>
@@ -165,7 +207,10 @@ function Referral() {
                               <FormItem>
                                 <FormLabel>Your Email</FormLabel>
                                 <FormControl>
-                                  <Input placeholder="john@example.com" {...field} />
+                                  <Input
+                                    placeholder="john@example.com"
+                                    {...field}
+                                  />
                                 </FormControl>
                                 <FormMessage className="text-red-500 text-sm mt-1" />
                               </FormItem>
@@ -178,7 +223,10 @@ function Referral() {
                               <FormItem>
                                 <FormLabel>Your Phone</FormLabel>
                                 <FormControl>
-                                  <Input placeholder="+1 (555) 000-0000" {...field} />
+                                  <Input
+                                    placeholder="+1 (555) 000-0000"
+                                    {...field}
+                                  />
                                 </FormControl>
                                 <FormMessage className="text-red-500 text-sm mt-1" />
                               </FormItem>
@@ -189,11 +237,13 @@ function Referral() {
 
                       {/* Friend's Details Section */}
                       <div className="space-y-4">
-                        <h3 className="text-lg font-semibold">Friend's Details</h3>
+                        <h3 className="text-lg font-semibold">
+                          Friend's Details
+                        </h3>
                         <div className="grid gap-4 md:grid-cols-2">
                           <FormField
                             control={form.control}
-                            name="refereeName"
+                            name="referredName"
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Friend's Name</FormLabel>
@@ -206,12 +256,15 @@ function Referral() {
                           />
                           <FormField
                             control={form.control}
-                            name="refereeEmail"
+                            name="referredEmail"
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Friend's Email</FormLabel>
                                 <FormControl>
-                                  <Input placeholder="jane@example.com" {...field} />
+                                  <Input
+                                    placeholder="jane@example.com"
+                                    {...field}
+                                  />
                                 </FormControl>
                                 <FormMessage className="text-red-500 text-sm mt-1" />
                               </FormItem>
@@ -219,12 +272,15 @@ function Referral() {
                           />
                           <FormField
                             control={form.control}
-                            name="refereePhone"
+                            name="referredPhone"
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Friend's Phone</FormLabel>
                                 <FormControl>
-                                  <Input placeholder="+1 (555) 000-0000" {...field} />
+                                  <Input
+                                    placeholder="+1 (555) 000-0000"
+                                    {...field}
+                                  />
                                 </FormControl>
                                 <FormMessage className="text-red-500 text-sm mt-1" />
                               </FormItem>
@@ -235,25 +291,40 @@ function Referral() {
 
                       {/* Course Selection */}
                       <div className="space-y-4">
-                        <h3 className="text-lg font-semibold">Course Details</h3>
-                        <FormField 
+                        <h3 className="text-lg font-semibold">
+                          Course Details
+                        </h3>
+                        <FormField
                           control={form.control}
                           name="course"
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Select Course</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <Select
+                                onValueChange={field.onChange}
+                                defaultValue={field.value}
+                              >
                                 <FormControl>
                                   <SelectTrigger>
                                     <SelectValue placeholder="Select a course" />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent className="bg-white">
-                                  <SelectItem value="web-development">Web Development</SelectItem>
-                                  <SelectItem value="data-science">Data Science</SelectItem>
-                                  <SelectItem value="mobile-dev">Mobile Development</SelectItem>
-                                  <SelectItem value="ui-ux">UI/UX Design</SelectItem>
-                                  <SelectItem value="ai-ml">AI & Machine Learning</SelectItem>
+                                  <SelectItem value="web-development">
+                                    Web Development
+                                  </SelectItem>
+                                  <SelectItem value="data-science">
+                                    Data Science
+                                  </SelectItem>
+                                  <SelectItem value="mobile-dev">
+                                    Mobile Development
+                                  </SelectItem>
+                                  <SelectItem value="ui-ux">
+                                    UI/UX Design
+                                  </SelectItem>
+                                  <SelectItem value="ai-ml">
+                                    AI & Machine Learning
+                                  </SelectItem>
                                 </SelectContent>
                               </Select>
                               <FormMessage className="text-red-500 text-sm mt-1" />
@@ -268,10 +339,14 @@ function Referral() {
                             <FormItem>
                               <FormLabel>Personal Message (Optional)</FormLabel>
                               <FormControl>
-                                <Input placeholder="Add a personal message to your friend..." {...field} />
+                                <Input
+                                  placeholder="Add a personal message to your friend..."
+                                  {...field}
+                                />
                               </FormControl>
                               <FormDescription>
-                                Your friend will see this message in their invitation email.
+                                Your friend will see this message in their
+                                invitation email.
                               </FormDescription>
                               <FormMessage className="text-red-500 text-sm mt-1" />
                             </FormItem>
@@ -280,7 +355,11 @@ function Referral() {
                       </div>
 
                       <div className="flex justify-end gap-3">
-                        <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setIsOpen(false)}
+                        >
                           Cancel
                         </Button>
                         <Button type="submit">Submit Referral</Button>
@@ -306,7 +385,9 @@ function Referral() {
                 </div>
                 <div>
                   <h4 className="font-semibold">Fill the referral form</h4>
-                  <p className="text-sm text-muted-foreground">Provide your friend's details and select a course</p>
+                  <p className="text-sm text-muted-foreground">
+                    Provide your friend's details and select a course
+                  </p>
                 </div>
               </div>
               <div className="flex gap-4">
@@ -316,7 +397,8 @@ function Referral() {
                 <div>
                   <h4 className="font-semibold">Friend receives invitation</h4>
                   <p className="text-sm text-muted-foreground">
-                    They'll get an email with course details and your personal message
+                    They'll get an email with course details and your personal
+                    message
                   </p>
                 </div>
               </div>
@@ -326,7 +408,9 @@ function Referral() {
                 </div>
                 <div>
                   <h4 className="font-semibold">Earn rewards</h4>
-                  <p className="text-sm text-muted-foreground">Get rewarded when your friend enrolls in the course</p>
+                  <p className="text-sm text-muted-foreground">
+                    Get rewarded when your friend enrolls in the course
+                  </p>
                 </div>
               </div>
             </div>
@@ -334,7 +418,7 @@ function Referral() {
         </Card>
       </div>
     </div>
-  )
+  );
 }
 
-export default Referral
+export default Referral;
