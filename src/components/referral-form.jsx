@@ -48,7 +48,7 @@ export function ReferralForm({ onSuccess }) {
 
     try {
       // Replace with your actual API endpoint
-      const response = await fetch("http://localhost:3000/referral", {
+      const response = await fetch("https://accredian-backend-task-5ftf.onrender.com/referral", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
