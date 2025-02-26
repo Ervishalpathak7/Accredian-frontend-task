@@ -58,7 +58,7 @@ export function ReferralForm({ onSuccess }) {
 
       if (!response.ok) {
         const data = await response.json()
-        throw new Error(data.message || "Something went wrong")
+        throw new Error(data.error || "Something went wrong")
       }
 
       onSuccess()
